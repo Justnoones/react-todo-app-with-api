@@ -1,6 +1,9 @@
 import React from 'react'
 
-export default function Todo ({todo}) {
+export default function Todo ({todo, destoryTodo}) {
+  let deleteHandler = () => {
+    destoryTodo(todo.id);
+  }
   return (
     <li className="todo-item-container">
         <div className="todo-item">
@@ -8,7 +11,7 @@ export default function Todo ({todo}) {
             <span className="todo-item-label">{todo.title}</span>
             {/* <input type="text" className="todo-item-input" value="Finish React Series" /> */}
         </div>
-        <button className="x-button">
+        <button className="x-button" onClick={deleteHandler}>
             <svg
             className="x-button-icon"
             fill="none"

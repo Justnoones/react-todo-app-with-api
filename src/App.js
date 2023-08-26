@@ -32,12 +32,22 @@ function App() {
       setTodos(ps => [...ps, todo]);
     }
 
+    let destoryTodo = todoId => {
+      // server
+      fetch(`http://localhost:3001/todo/${todoId}`, {
+        method : "DELETE"
+      });
+
+      // client
+      setTodos(ps => ps.filter(todo => todo.id !== todoId));
+    }
+
   return (
     <div className="todo-app-container">
       <div className="todo-app">
         <h2>Todo App</h2>
         <TodoForm addTodo={addTodo} />
-        <TodoLists todos={todos} />
+        <TodoLists todos={todos} destoryTodo={destoryTodo} />
         <CheckAllAndRemaining />
 
         <div className="other-buttons-container">
