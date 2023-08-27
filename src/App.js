@@ -5,18 +5,31 @@ import TodoLists from './components/TodoLists';
 import CheckAllAndRemaining from './components/CheckAllAndRemaining';
 import TodoFilter from './components/TodoFilter';
 import ClearCompleted from './components/ClearCompleted';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 function App() {
 
   let [todos, setTodos] = useState([]);
+  let [filterTodos, setFilterTodos] = useState(todos);
+
   useEffect(() => {
     fetch("http://localhost:3001/todo")
       .then(res => res.json())
       .then(data => {
         setTodos(data);
+        setFilterTodos(data);
       })
   }, []);
+
+  let filterBy = useCallback(filter => {
+    if (filter === "All") {
+      return setFilterTodos(todos);
+    } else if (filter === "Active") {
+      return setFilterTodos(todos.filter(t => !t.completed));
+    } else if (filter === "Completed")  {
+      return setFilterTodos(todos.filter(t => t.completed));
+    }
+  }, [todos]);
 
     let addTodo = todo => {
       // server
@@ -74,6 +87,15 @@ function App() {
       setTodos(ps => ps.map(td => ( {...td, completed : true} )))
     }
 
+    let clearCompleted = () => {
+      todos.map(todo => {
+        if (todo.completed) {
+          destoryTodo(todo.id);
+        }
+        return true;
+      })
+    }
+
     let remainingTodos = todos.filter(t => !t.completed).length;
 
   return (
@@ -81,11 +103,11 @@ function App() {
       <div className="todo-app">
         <h2>Todo App</h2>
         <TodoForm addTodo={addTodo} />
-        <TodoLists todos={todos} destoryTodo={destoryTodo} updateTodo={updateTodo} />
+        <TodoLists todos={filterTodos} destoryTodo={destoryTodo} updateTodo={updateTodo} />
         <CheckAllAndRemaining remainingTodos={remainingTodos} checkAll={checkAll} />
         <div className="other-buttons-container">
-          <TodoFilter />
-          <ClearCompleted />
+          <TodoFilter filterBy={filterBy} />
+          <ClearCompleted clearCompleted={clearCompleted} />
         </div>
       </div>
     </div>
