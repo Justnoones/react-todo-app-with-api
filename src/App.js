@@ -28,7 +28,6 @@ function App() {
       setTodosFilter(todos.filter(td => !td.completed));
     } else if (filter === "Completed") {
       setTodosFilter(todos.filter(td => td.completed));
-      console.log("hit");
     }
   }, [todos]);
 

@@ -7,7 +7,7 @@ export default function TodoForm ({addTodo}) {
     let newTodo = {
       id : Math.floor(Math.random() * 200),
       title : todo,
-      compolete : false
+      complete : false
     }
     addTodo(newTodo);
     setTodo("");
