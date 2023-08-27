@@ -32,7 +32,7 @@ export default function Todo ({todo, destoryTodo, updateTodo}) {
     <li className="todo-item-container">
         <div className="todo-item">
             <input type="checkbox" onChange={updateCheckbox} checked={todo.completed} />
-            {!isEdit && <span className="todo-item-label" onDoubleClick={e => setIsEdit(true)}>{todo.title}</span>}
+            {!isEdit && <span className={`todo-item-label ${todo.completed && 'line-through'}`} onDoubleClick={e => setIsEdit(true)}>{todo.title}</span>}
             {isEdit &&
             <form onSubmit={updateHandler}>
               <input

@@ -5,74 +5,102 @@ import TodoLists from './components/TodoLists';
 import CheckAllAndRemaining from './components/CheckAllAndRemaining';
 import TodoFilter from './components/TodoFilter';
 import ClearCompleted from './components/ClearCompleted';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 function App() {
 
   let [todos, setTodos] = useState([]);
+  let [todosFilter, setTodosFilter] = useState(todos);
+
   useEffect(() => {
     fetch("http://localhost:3001/todo")
       .then(res => res.json())
       .then(data => {
         setTodos(data);
+        setTodosFilter(data);
       })
   }, []);
 
-    let addTodo = todo => {
-      // server
-      fetch("http://localhost:3001/todo", {
-        method : "POST",
-        headers : {
-          "Content-Type" : "application/json"
-        },
-        body : JSON.stringify(todo)
+  let todoFilterFun = useCallback(filter => {
+    if (filter === "All") {
+       setTodosFilter(todos);
+    } else if (filter === "Active") {
+      setTodosFilter(todos.filter(td => !td.completed));
+    } else if (filter === "Completed") {
+      setTodosFilter(todos.filter(td => td.completed));
+      console.log("hit");
+    }
+  }, [todos]);
+
+  let addTodo = todo => {
+    // server
+    fetch("http://localhost:3001/todo", {
+      method : "POST",
+      headers : {
+        "Content-Type" : "application/json"
+      },
+      body : JSON.stringify(todo)
+    })
+    
+    // client
+    setTodos(ps => [...ps, todo]);
+  }
+
+  let destoryTodo = todoId => {
+    // server
+    fetch(`http://localhost:3001/todo/${todoId}`, {
+      method : "DELETE"
+    });
+
+    // client
+    setTodos(ps => ps.filter(todo => todo.id !== todoId));
+  }
+
+  let updateTodo = todo => {
+    // server
+    fetch(`http://localhost:3001/todo/${todo.id}`, {
+      method : "PATCH",
+      headers : {
+        "Content-Type" : "application/json"
+      },
+      body : JSON.stringify(todo)
+    });
+
+    // client
+    setTodos(ps => {
+      return ps.map(td => {
+        if (td.id === todo.id) {
+          return todo;
+        }
+      return td;
       })
-      
-      // client
-      setTodos(ps => [...ps, todo]);
-    }
+    })
+  }
 
-    let destoryTodo = todoId => {
-      // server
-      fetch(`http://localhost:3001/todo/${todoId}`, {
-        method : "DELETE"
-      });
+  let checkAll = () => {
+    // server
+    todos.forEach(td => {
+      td.completed = true;
+      updateTodo(td);
+    })
 
-      // client
-      setTodos(ps => ps.filter(todo => todo.id !== todoId));
-    }
+    // client
+    setTodos(ps => ps.map(td => ( {...td, completed : true} )))
+  }
 
-    let updateTodo = todo => {
-      // server
-      fetch(`http://localhost:3001/todo/${todo.id}`, {
-        method : "PATCH",
-        headers : {
-          "Content-Type" : "application/json"
-        },
-        body : JSON.stringify(todo)
-      });
+  let clearCompleted = () => {
+    // server
+    todos.map(todo => {
+      if (todo.completed) {
+        destoryTodo(todo.id);
+      }
+      return true;
+    });
 
-      // client
-      setTodos(ps => {
-        return ps.map(td => {
-          if (td.id === todo.id) {
-            return todo;
-          }
-        return td;
-        })
-      })
-    }
 
-    let checkAll = () => {
-      // server
-      todos.forEach(td => {
-        td.completed = true;
-        updateTodo(td);
-      })
-
-      // client
-      setTodos(ps => ps.map(td => ( {...td, completed : true} )))
-    }
+    // client
+    setTodos(ps => ( ps.filter(td => !td.completed) ));
+  }
 
     let remainingTodos = todos.filter(t => !t.completed).length;
 
@@ -81,11 +109,11 @@ function App() {
       <div className="todo-app">
         <h2>Todo App</h2>
         <TodoForm addTodo={addTodo} />
-        <TodoLists todos={todos} destoryTodo={destoryTodo} updateTodo={updateTodo} />
+        <TodoLists todos={todosFilter} destoryTodo={destoryTodo} updateTodo={updateTodo} />
         <CheckAllAndRemaining remainingTodos={remainingTodos} checkAll={checkAll} />
         <div className="other-buttons-container">
-          <TodoFilter />
-          <ClearCompleted />
+          <TodoFilter todoFilter={todoFilterFun} />
+          <ClearCompleted clearCompleted={clearCompleted} />
         </div>
       </div>
     </div>
